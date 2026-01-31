@@ -1,6 +1,8 @@
 <template>
   <MainLayout class="h-full">
-    <RouterView />
+    <transition name="fade">
+      <RouterView />
+    </transition>
   </MainLayout>
 </template>
 
