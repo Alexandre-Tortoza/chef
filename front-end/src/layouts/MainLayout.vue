@@ -1,7 +1,7 @@
 <template>
   <div class="grid grid-cols-12">
     <AppSidebar class="col-span-2" />
-    <div class="col-span-10 gridBackground">
+    <div class="col-span-10 gridBackground h-full">
       <slot />
     </div>
   </div>

@@ -11,5 +11,9 @@ const list = [
     id: 0,
     name: 'Compras da semana',
   },
+  {
+    id: 1,
+    name: 'Compras da para fazer lasanha',
+  },
 ]
 </script>
