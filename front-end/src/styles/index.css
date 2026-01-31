@@ -1,0 +1,28 @@
+@import 'tailwindcss';
+
+@theme {
+  --color-shaft-50: #f7f7f6;
+  --color-shaft-100: #e6e6e1;
+  --color-shaft-200: #ccccc3;
+  --color-shaft-300: #a9ab9d;
+  --color-shaft-400: #868978;
+  --color-shaft-500: #6c6e5e;
+  --color-shaft-600: #55574a;
+  --color-shaft-700: #46483d;
+  --color-shaft-800: #393b34;
+  --color-shaft-900: #2b2c27;
+  --color-shaft-950: #1b1c17;
+
+  --color-healthy: #8ce68e;
+}
+
+/* Fade padrão */
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.2s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
