@@ -1,0 +1,19 @@
+{
+  "name": "back-end",
+  "version": "1.0.50",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "bun run --watch src/index.ts"
+  },
+  "dependencies": {
+    "@prisma/adapter-libsql": "^7.2.0",
+    "@prisma/client": "^7.2.0",
+    "elysia": "latest",
+    "prismabox": "^1.1.26"
+  },
+  "devDependencies": {
+    "bun-types": "latest",
+    "prisma": "^7.3.0"
+  },
+  "module": "src/index.js"
+}

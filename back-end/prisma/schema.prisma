@@ -1,0 +1,197 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+generator prismabox {
+  provider                    = "prismabox"
+  typeboxImportDependencyName = "elysia"
+  typeboxImportVariableName   = "t"
+  inputModel                  = true
+  output                      = "../generated/prismabox"
+}
+
+// ============================================================================
+// RECEITAS
+// ============================================================================
+
+model Recipe {
+  id           String             @id @default(cuid())
+  title        String
+  description  String?
+  instructions String
+  servings     Int                @default(1)
+  prepTime     Int?
+  cookTime     Int?
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @updatedAt
+  ingredients  RecipeIngredient[]
+
+  userRequestId String?      @unique
+  userRequest   UserRequest? @relation(fields: [userRequestId], references: [id])
+}
+
+model RecipeIngredient {
+  id       String  @id @default(cuid())
+  quantity String
+  unit     String?
+  notes    String?
+
+  recipeId String
+  recipe   Recipe @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+
+  ingredientId String
+  ingredient   Ingredient @relation(fields: [ingredientId], references: [id])
+
+  @@index([recipeId])
+  @@index([ingredientId])
+}
+
+// ============================================================================
+// INGREDIENTES E ESTOQUE
+// ============================================================================
+
+model Ingredient {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  category    String?
+  defaultUnit String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  recipeIngredients RecipeIngredient[]
+  stockItems        StockItem[]
+  shoppingItems     ShoppingItem[]
+  blacklistItems    BlacklistItem[]
+}
+
+model StockItem {
+  id         String    @id @default(cuid())
+  quantity   String
+  unit       String?
+  expiryDate DateTime?
+  location   String?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  ingredientId String
+  ingredient   Ingredient @relation(fields: [ingredientId], references: [id], onDelete: Cascade)
+
+  @@index([ingredientId])
+}
+
+// ============================================================================
+// LISTA DE COMPRAS
+// ============================================================================
+
+model ShoppingList {
+  id        String         @id @default(cuid())
+  name      String
+  status    String         @default("active")
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+  items     ShoppingItem[]
+}
+
+model ShoppingItem {
+  id        String   @id @default(cuid())
+  quantity  String
+  unit      String?
+  purchased Boolean  @default(false)
+  notes     String?
+  priority  Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  shoppingListId String
+  shoppingList   ShoppingList @relation(fields: [shoppingListId], references: [id], onDelete: Cascade)
+
+  ingredientId String
+  ingredient   Ingredient @relation(fields: [ingredientId], references: [id])
+
+  recipeId String?
+
+  @@index([shoppingListId])
+  @@index([ingredientId])
+}
+
+// ============================================================================
+// LISTA NEGRA
+// ============================================================================
+
+model BlacklistItem {
+  id        String   @id @default(cuid())
+  reason    String?
+  createdAt DateTime @default(now())
+
+  ingredientId String     @unique
+  ingredient   Ingredient @relation(fields: [ingredientId], references: [id], onDelete: Cascade)
+}
+
+// ============================================================================
+// HISTÓRICO DE INTERAÇÕES COM LLM
+// ============================================================================
+
+model UserRequest {
+  id          String   @id @default(cuid())
+  requestText String
+  llmResponse String
+  actionType  String
+  createdAt   DateTime @default(now())
+
+  recipe Recipe?
+
+  metadata String?
+}
+
+// ============================================================================
+// DIETAS E ITENS RECORRENTES
+// ============================================================================
+
+model RecurringPlan {
+  id          String              @id @default(cuid())
+  name        String
+  description String?
+  frequency   String
+  startDate   DateTime
+  endDate     DateTime?
+  active      Boolean             @default(true)
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+  items       RecurringPlanItem[]
+}
+
+model RecurringPlanItem {
+  id         String  @id @default(cuid())
+  dayOfWeek  Int?
+  dayOfMonth Int?
+  mealType   String?
+
+  recurringPlanId String
+  recurringPlan   RecurringPlan @relation(fields: [recurringPlanId], references: [id], onDelete: Cascade)
+
+  recipeId String
+
+  @@index([recurringPlanId])
+}
+
+// ============================================================================
+// SUGESTÕES DA LLM
+// ============================================================================
+
+model Suggestion {
+  id          String   @id @default(cuid())
+  title       String
+  description String
+  type        String
+  recipeIds   String?
+  ingredients String?
+  dismissed   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  @@index([dismissed, createdAt])
+}
