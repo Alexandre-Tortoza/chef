@@ -1,16 +1,15 @@
 <template>
-  <RouterLink to="/ai-chat">
-    <div
-      class="px-2 py-1 border-2 border-transparent hover:border-shaft-950 rounded-sm transition-all duration-200 delay-75 hover:bg-healthy flex justify-between items-center"
-    >
-      <span class="flex gap-4">
-        <BotMessageSquare />
-        Conversar com o Chef
-      </span>
-    </div>
-  </RouterLink>
+  <span class="font-bold ml-2">Listas</span>
+  <ListItem v-for="listItem in list" :key="listItem.id" :name="listItem.name" :id="listItem.id" />
 </template>
 
 <script setup lang="ts">
-import { RouterLink } from 'vue-router'
+import ListItem from './ListItem.vue'
+
+const list = [
+  {
+    id: 0,
+    name: 'Compras da semana',
+  },
+]
 </script>
