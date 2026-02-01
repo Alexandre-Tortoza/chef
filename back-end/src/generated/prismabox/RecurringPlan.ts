@@ -4,31 +4,32 @@ import { __transformDate__ } from "./__transformDate__";
 
 import { __nullable__ } from "./__nullable__";
 
-export const ListsPlain = t.Object(
+export const RecurringPlanPlain = t.Object(
   {
     id: t.String(),
-    title: t.String(),
+    name: t.String(),
+    description: __nullable__(t.String()),
+    frequency: t.String(),
+    startDate: t.Date(),
+    endDate: __nullable__(t.Date()),
     active: t.Boolean(),
-    ownerId: t.String(),
+    createdAt: t.Date(),
+    updatedAt: t.Date(),
   },
   { additionalProperties: false },
 );
 
-export const ListsRelations = t.Object(
+export const RecurringPlanRelations = t.Object(
   {
-    owner: t.Object(
-      { id: t.String(), email: t.String(), name: __nullable__(t.String()) },
-      { additionalProperties: false },
-    ),
-    listItems: t.Array(
+    items: t.Array(
       t.Object(
         {
           id: t.String(),
-          item: t.String(),
-          quantity: t.String(),
-          description: t.String(),
-          recurrent: t.Boolean(),
-          listId: t.String(),
+          dayOfWeek: __nullable__(t.Integer()),
+          dayOfMonth: __nullable__(t.Integer()),
+          mealType: __nullable__(t.String()),
+          recurringPlanId: t.String(),
+          recipeId: t.String(),
         },
         { additionalProperties: false },
       ),
@@ -38,30 +39,33 @@ export const ListsRelations = t.Object(
   { additionalProperties: false },
 );
 
-export const ListsPlainInputCreate = t.Object(
-  { title: t.String(), active: t.Optional(t.Boolean()) },
-  { additionalProperties: false },
-);
-
-export const ListsPlainInputUpdate = t.Object(
-  { title: t.Optional(t.String()), active: t.Optional(t.Boolean()) },
-  { additionalProperties: false },
-);
-
-export const ListsRelationsInputCreate = t.Object(
+export const RecurringPlanPlainInputCreate = t.Object(
   {
-    owner: t.Object(
-      {
-        connect: t.Object(
-          {
-            id: t.String({ additionalProperties: false }),
-          },
-          { additionalProperties: false },
-        ),
-      },
-      { additionalProperties: false },
-    ),
-    listItems: t.Optional(
+    name: t.String(),
+    description: t.Optional(__nullable__(t.String())),
+    frequency: t.String(),
+    startDate: t.Date(),
+    endDate: t.Optional(__nullable__(t.Date())),
+    active: t.Optional(t.Boolean()),
+  },
+  { additionalProperties: false },
+);
+
+export const RecurringPlanPlainInputUpdate = t.Object(
+  {
+    name: t.Optional(t.String()),
+    description: t.Optional(__nullable__(t.String())),
+    frequency: t.Optional(t.String()),
+    startDate: t.Optional(t.Date()),
+    endDate: t.Optional(__nullable__(t.Date())),
+    active: t.Optional(t.Boolean()),
+  },
+  { additionalProperties: false },
+);
+
+export const RecurringPlanRelationsInputCreate = t.Object(
+  {
+    items: t.Optional(
       t.Object(
         {
           connect: t.Array(
@@ -81,21 +85,10 @@ export const ListsRelationsInputCreate = t.Object(
   { additionalProperties: false },
 );
 
-export const ListsRelationsInputUpdate = t.Partial(
+export const RecurringPlanRelationsInputUpdate = t.Partial(
   t.Object(
     {
-      owner: t.Object(
-        {
-          connect: t.Object(
-            {
-              id: t.String({ additionalProperties: false }),
-            },
-            { additionalProperties: false },
-          ),
-        },
-        { additionalProperties: false },
-      ),
-      listItems: t.Partial(
+      items: t.Partial(
         t.Object(
           {
             connect: t.Array(
@@ -125,7 +118,7 @@ export const ListsRelationsInputUpdate = t.Partial(
   ),
 );
 
-export const ListsWhere = t.Partial(
+export const RecurringPlanWhere = t.Partial(
   t.Recursive(
     (Self) =>
       t.Object(
@@ -134,17 +127,22 @@ export const ListsWhere = t.Partial(
           NOT: t.Union([Self, t.Array(Self, { additionalProperties: false })]),
           OR: t.Array(Self, { additionalProperties: false }),
           id: t.String(),
-          title: t.String(),
+          name: t.String(),
+          description: t.String(),
+          frequency: t.String(),
+          startDate: t.Date(),
+          endDate: t.Date(),
           active: t.Boolean(),
-          ownerId: t.String(),
+          createdAt: t.Date(),
+          updatedAt: t.Date(),
         },
         { additionalProperties: false },
       ),
-    { $id: "Lists" },
+    { $id: "RecurringPlan" },
   ),
 );
 
-export const ListsWhereUnique = t.Recursive(
+export const RecurringPlanWhereUnique = t.Recursive(
   (Self) =>
     t.Intersect(
       [
@@ -173,9 +171,14 @@ export const ListsWhereUnique = t.Recursive(
           t.Object(
             {
               id: t.String(),
-              title: t.String(),
+              name: t.String(),
+              description: t.String(),
+              frequency: t.String(),
+              startDate: t.Date(),
+              endDate: t.Date(),
               active: t.Boolean(),
-              ownerId: t.String(),
+              createdAt: t.Date(),
+              updatedAt: t.Date(),
             },
             { additionalProperties: false },
           ),
@@ -183,44 +186,63 @@ export const ListsWhereUnique = t.Recursive(
       ],
       { additionalProperties: false },
     ),
-  { $id: "Lists" },
+  { $id: "RecurringPlan" },
 );
 
-export const ListsSelect = t.Partial(
+export const RecurringPlanSelect = t.Partial(
   t.Object(
     {
       id: t.Boolean(),
-      title: t.Boolean(),
+      name: t.Boolean(),
+      description: t.Boolean(),
+      frequency: t.Boolean(),
+      startDate: t.Boolean(),
+      endDate: t.Boolean(),
       active: t.Boolean(),
-      owner: t.Boolean(),
-      ownerId: t.Boolean(),
-      listItems: t.Boolean(),
+      createdAt: t.Boolean(),
+      updatedAt: t.Boolean(),
+      items: t.Boolean(),
       _count: t.Boolean(),
     },
     { additionalProperties: false },
   ),
 );
 
-export const ListsInclude = t.Partial(
+export const RecurringPlanInclude = t.Partial(
   t.Object(
-    { owner: t.Boolean(), listItems: t.Boolean(), _count: t.Boolean() },
+    { items: t.Boolean(), _count: t.Boolean() },
     { additionalProperties: false },
   ),
 );
 
-export const ListsOrderBy = t.Partial(
+export const RecurringPlanOrderBy = t.Partial(
   t.Object(
     {
       id: t.Union([t.Literal("asc"), t.Literal("desc")], {
         additionalProperties: false,
       }),
-      title: t.Union([t.Literal("asc"), t.Literal("desc")], {
+      name: t.Union([t.Literal("asc"), t.Literal("desc")], {
+        additionalProperties: false,
+      }),
+      description: t.Union([t.Literal("asc"), t.Literal("desc")], {
+        additionalProperties: false,
+      }),
+      frequency: t.Union([t.Literal("asc"), t.Literal("desc")], {
+        additionalProperties: false,
+      }),
+      startDate: t.Union([t.Literal("asc"), t.Literal("desc")], {
+        additionalProperties: false,
+      }),
+      endDate: t.Union([t.Literal("asc"), t.Literal("desc")], {
         additionalProperties: false,
       }),
       active: t.Union([t.Literal("asc"), t.Literal("desc")], {
         additionalProperties: false,
       }),
-      ownerId: t.Union([t.Literal("asc"), t.Literal("desc")], {
+      createdAt: t.Union([t.Literal("asc"), t.Literal("desc")], {
+        additionalProperties: false,
+      }),
+      updatedAt: t.Union([t.Literal("asc"), t.Literal("desc")], {
         additionalProperties: false,
       }),
     },
@@ -228,16 +250,17 @@ export const ListsOrderBy = t.Partial(
   ),
 );
 
-export const Lists = t.Composite([ListsPlain, ListsRelations], {
-  additionalProperties: false,
-});
-
-export const ListsInputCreate = t.Composite(
-  [ListsPlainInputCreate, ListsRelationsInputCreate],
+export const RecurringPlan = t.Composite(
+  [RecurringPlanPlain, RecurringPlanRelations],
   { additionalProperties: false },
 );
 
-export const ListsInputUpdate = t.Composite(
-  [ListsPlainInputUpdate, ListsRelationsInputUpdate],
+export const RecurringPlanInputCreate = t.Composite(
+  [RecurringPlanPlainInputCreate, RecurringPlanRelationsInputCreate],
+  { additionalProperties: false },
+);
+
+export const RecurringPlanInputUpdate = t.Composite(
+  [RecurringPlanPlainInputUpdate, RecurringPlanRelationsInputUpdate],
   { additionalProperties: false },
 );

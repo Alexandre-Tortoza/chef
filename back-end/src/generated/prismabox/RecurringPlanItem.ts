@@ -4,26 +4,31 @@ import { __transformDate__ } from "./__transformDate__";
 
 import { __nullable__ } from "./__nullable__";
 
-export const ListItemPlain = t.Object(
+export const RecurringPlanItemPlain = t.Object(
   {
     id: t.String(),
-    item: t.String(),
-    quantity: t.String(),
-    description: t.String(),
-    recurrent: t.Boolean(),
-    listId: t.String(),
+    dayOfWeek: __nullable__(t.Integer()),
+    dayOfMonth: __nullable__(t.Integer()),
+    mealType: __nullable__(t.String()),
+    recurringPlanId: t.String(),
+    recipeId: t.String(),
   },
   { additionalProperties: false },
 );
 
-export const ListItemRelations = t.Object(
+export const RecurringPlanItemRelations = t.Object(
   {
-    list: t.Object(
+    recurringPlan: t.Object(
       {
         id: t.String(),
-        title: t.String(),
+        name: t.String(),
+        description: __nullable__(t.String()),
+        frequency: t.String(),
+        startDate: t.Date(),
+        endDate: __nullable__(t.Date()),
         active: t.Boolean(),
-        ownerId: t.String(),
+        createdAt: t.Date(),
+        updatedAt: t.Date(),
       },
       { additionalProperties: false },
     ),
@@ -31,29 +36,27 @@ export const ListItemRelations = t.Object(
   { additionalProperties: false },
 );
 
-export const ListItemPlainInputCreate = t.Object(
+export const RecurringPlanItemPlainInputCreate = t.Object(
   {
-    item: t.String(),
-    quantity: t.String(),
-    description: t.String(),
-    recurrent: t.Boolean(),
+    dayOfWeek: t.Optional(__nullable__(t.Integer())),
+    dayOfMonth: t.Optional(__nullable__(t.Integer())),
+    mealType: t.Optional(__nullable__(t.String())),
   },
   { additionalProperties: false },
 );
 
-export const ListItemPlainInputUpdate = t.Object(
+export const RecurringPlanItemPlainInputUpdate = t.Object(
   {
-    item: t.Optional(t.String()),
-    quantity: t.Optional(t.String()),
-    description: t.Optional(t.String()),
-    recurrent: t.Optional(t.Boolean()),
+    dayOfWeek: t.Optional(__nullable__(t.Integer())),
+    dayOfMonth: t.Optional(__nullable__(t.Integer())),
+    mealType: t.Optional(__nullable__(t.String())),
   },
   { additionalProperties: false },
 );
 
-export const ListItemRelationsInputCreate = t.Object(
+export const RecurringPlanItemRelationsInputCreate = t.Object(
   {
-    list: t.Object(
+    recurringPlan: t.Object(
       {
         connect: t.Object(
           {
@@ -68,10 +71,10 @@ export const ListItemRelationsInputCreate = t.Object(
   { additionalProperties: false },
 );
 
-export const ListItemRelationsInputUpdate = t.Partial(
+export const RecurringPlanItemRelationsInputUpdate = t.Partial(
   t.Object(
     {
-      list: t.Object(
+      recurringPlan: t.Object(
         {
           connect: t.Object(
             {
@@ -87,7 +90,7 @@ export const ListItemRelationsInputUpdate = t.Partial(
   ),
 );
 
-export const ListItemWhere = t.Partial(
+export const RecurringPlanItemWhere = t.Partial(
   t.Recursive(
     (Self) =>
       t.Object(
@@ -96,19 +99,19 @@ export const ListItemWhere = t.Partial(
           NOT: t.Union([Self, t.Array(Self, { additionalProperties: false })]),
           OR: t.Array(Self, { additionalProperties: false }),
           id: t.String(),
-          item: t.String(),
-          quantity: t.String(),
-          description: t.String(),
-          recurrent: t.Boolean(),
-          listId: t.String(),
+          dayOfWeek: t.Integer(),
+          dayOfMonth: t.Integer(),
+          mealType: t.String(),
+          recurringPlanId: t.String(),
+          recipeId: t.String(),
         },
         { additionalProperties: false },
       ),
-    { $id: "ListItem" },
+    { $id: "RecurringPlanItem" },
   ),
 );
 
-export const ListItemWhereUnique = t.Recursive(
+export const RecurringPlanItemWhereUnique = t.Recursive(
   (Self) =>
     t.Intersect(
       [
@@ -137,11 +140,11 @@ export const ListItemWhereUnique = t.Recursive(
           t.Object(
             {
               id: t.String(),
-              item: t.String(),
-              quantity: t.String(),
-              description: t.String(),
-              recurrent: t.Boolean(),
-              listId: t.String(),
+              dayOfWeek: t.Integer(),
+              dayOfMonth: t.Integer(),
+              mealType: t.String(),
+              recurringPlanId: t.String(),
+              recipeId: t.String(),
             },
             { additionalProperties: false },
           ),
@@ -149,51 +152,51 @@ export const ListItemWhereUnique = t.Recursive(
       ],
       { additionalProperties: false },
     ),
-  { $id: "ListItem" },
+  { $id: "RecurringPlanItem" },
 );
 
-export const ListItemSelect = t.Partial(
+export const RecurringPlanItemSelect = t.Partial(
   t.Object(
     {
       id: t.Boolean(),
-      item: t.Boolean(),
-      quantity: t.Boolean(),
-      description: t.Boolean(),
-      recurrent: t.Boolean(),
-      list: t.Boolean(),
-      listId: t.Boolean(),
+      dayOfWeek: t.Boolean(),
+      dayOfMonth: t.Boolean(),
+      mealType: t.Boolean(),
+      recurringPlanId: t.Boolean(),
+      recurringPlan: t.Boolean(),
+      recipeId: t.Boolean(),
       _count: t.Boolean(),
     },
     { additionalProperties: false },
   ),
 );
 
-export const ListItemInclude = t.Partial(
+export const RecurringPlanItemInclude = t.Partial(
   t.Object(
-    { list: t.Boolean(), _count: t.Boolean() },
+    { recurringPlan: t.Boolean(), _count: t.Boolean() },
     { additionalProperties: false },
   ),
 );
 
-export const ListItemOrderBy = t.Partial(
+export const RecurringPlanItemOrderBy = t.Partial(
   t.Object(
     {
       id: t.Union([t.Literal("asc"), t.Literal("desc")], {
         additionalProperties: false,
       }),
-      item: t.Union([t.Literal("asc"), t.Literal("desc")], {
+      dayOfWeek: t.Union([t.Literal("asc"), t.Literal("desc")], {
         additionalProperties: false,
       }),
-      quantity: t.Union([t.Literal("asc"), t.Literal("desc")], {
+      dayOfMonth: t.Union([t.Literal("asc"), t.Literal("desc")], {
         additionalProperties: false,
       }),
-      description: t.Union([t.Literal("asc"), t.Literal("desc")], {
+      mealType: t.Union([t.Literal("asc"), t.Literal("desc")], {
         additionalProperties: false,
       }),
-      recurrent: t.Union([t.Literal("asc"), t.Literal("desc")], {
+      recurringPlanId: t.Union([t.Literal("asc"), t.Literal("desc")], {
         additionalProperties: false,
       }),
-      listId: t.Union([t.Literal("asc"), t.Literal("desc")], {
+      recipeId: t.Union([t.Literal("asc"), t.Literal("desc")], {
         additionalProperties: false,
       }),
     },
@@ -201,16 +204,17 @@ export const ListItemOrderBy = t.Partial(
   ),
 );
 
-export const ListItem = t.Composite([ListItemPlain, ListItemRelations], {
-  additionalProperties: false,
-});
-
-export const ListItemInputCreate = t.Composite(
-  [ListItemPlainInputCreate, ListItemRelationsInputCreate],
+export const RecurringPlanItem = t.Composite(
+  [RecurringPlanItemPlain, RecurringPlanItemRelations],
   { additionalProperties: false },
 );
 
-export const ListItemInputUpdate = t.Composite(
-  [ListItemPlainInputUpdate, ListItemRelationsInputUpdate],
+export const RecurringPlanItemInputCreate = t.Composite(
+  [RecurringPlanItemPlainInputCreate, RecurringPlanItemRelationsInputCreate],
+  { additionalProperties: false },
+);
+
+export const RecurringPlanItemInputUpdate = t.Composite(
+  [RecurringPlanItemPlainInputUpdate, RecurringPlanItemRelationsInputUpdate],
   { additionalProperties: false },
 );

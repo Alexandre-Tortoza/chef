@@ -4,20 +4,33 @@ import { __transformDate__ } from "./__transformDate__";
 
 import { __nullable__ } from "./__nullable__";
 
-export const UserPlain = t.Object(
-  { id: t.String(), email: t.String(), name: __nullable__(t.String()) },
+export const ShoppingListPlain = t.Object(
+  {
+    id: t.String(),
+    name: t.String(),
+    status: t.String(),
+    createdAt: t.Date(),
+    updatedAt: t.Date(),
+  },
   { additionalProperties: false },
 );
 
-export const UserRelations = t.Object(
+export const ShoppingListRelations = t.Object(
   {
-    lists: t.Array(
+    items: t.Array(
       t.Object(
         {
           id: t.String(),
-          title: t.String(),
-          active: t.Boolean(),
-          ownerId: t.String(),
+          quantity: t.String(),
+          unit: __nullable__(t.String()),
+          purchased: t.Boolean(),
+          notes: __nullable__(t.String()),
+          priority: t.Integer(),
+          createdAt: t.Date(),
+          updatedAt: t.Date(),
+          shoppingListId: t.String(),
+          ingredientId: t.String(),
+          recipeId: __nullable__(t.String()),
         },
         { additionalProperties: false },
       ),
@@ -27,19 +40,19 @@ export const UserRelations = t.Object(
   { additionalProperties: false },
 );
 
-export const UserPlainInputCreate = t.Object(
-  { email: t.String(), name: t.Optional(__nullable__(t.String())) },
+export const ShoppingListPlainInputCreate = t.Object(
+  { name: t.String(), status: t.Optional(t.String()) },
   { additionalProperties: false },
 );
 
-export const UserPlainInputUpdate = t.Object(
-  { email: t.Optional(t.String()), name: t.Optional(__nullable__(t.String())) },
+export const ShoppingListPlainInputUpdate = t.Object(
+  { name: t.Optional(t.String()), status: t.Optional(t.String()) },
   { additionalProperties: false },
 );
 
-export const UserRelationsInputCreate = t.Object(
+export const ShoppingListRelationsInputCreate = t.Object(
   {
-    lists: t.Optional(
+    items: t.Optional(
       t.Object(
         {
           connect: t.Array(
@@ -59,10 +72,10 @@ export const UserRelationsInputCreate = t.Object(
   { additionalProperties: false },
 );
 
-export const UserRelationsInputUpdate = t.Partial(
+export const ShoppingListRelationsInputUpdate = t.Partial(
   t.Object(
     {
-      lists: t.Partial(
+      items: t.Partial(
         t.Object(
           {
             connect: t.Array(
@@ -92,7 +105,7 @@ export const UserRelationsInputUpdate = t.Partial(
   ),
 );
 
-export const UserWhere = t.Partial(
+export const ShoppingListWhere = t.Partial(
   t.Recursive(
     (Self) =>
       t.Object(
@@ -101,30 +114,28 @@ export const UserWhere = t.Partial(
           NOT: t.Union([Self, t.Array(Self, { additionalProperties: false })]),
           OR: t.Array(Self, { additionalProperties: false }),
           id: t.String(),
-          email: t.String(),
           name: t.String(),
+          status: t.String(),
+          createdAt: t.Date(),
+          updatedAt: t.Date(),
         },
         { additionalProperties: false },
       ),
-    { $id: "User" },
+    { $id: "ShoppingList" },
   ),
 );
 
-export const UserWhereUnique = t.Recursive(
+export const ShoppingListWhereUnique = t.Recursive(
   (Self) =>
     t.Intersect(
       [
         t.Partial(
-          t.Object(
-            { id: t.String(), email: t.String() },
-            { additionalProperties: false },
-          ),
+          t.Object({ id: t.String() }, { additionalProperties: false }),
           { additionalProperties: false },
         ),
-        t.Union(
-          [t.Object({ id: t.String() }), t.Object({ email: t.String() })],
-          { additionalProperties: false },
-        ),
+        t.Union([t.Object({ id: t.String() })], {
+          additionalProperties: false,
+        }),
         t.Partial(
           t.Object({
             AND: t.Union([
@@ -141,46 +152,60 @@ export const UserWhereUnique = t.Recursive(
         ),
         t.Partial(
           t.Object(
-            { id: t.String(), email: t.String(), name: t.String() },
+            {
+              id: t.String(),
+              name: t.String(),
+              status: t.String(),
+              createdAt: t.Date(),
+              updatedAt: t.Date(),
+            },
             { additionalProperties: false },
           ),
         ),
       ],
       { additionalProperties: false },
     ),
-  { $id: "User" },
+  { $id: "ShoppingList" },
 );
 
-export const UserSelect = t.Partial(
+export const ShoppingListSelect = t.Partial(
   t.Object(
     {
       id: t.Boolean(),
-      email: t.Boolean(),
       name: t.Boolean(),
-      lists: t.Boolean(),
+      status: t.Boolean(),
+      createdAt: t.Boolean(),
+      updatedAt: t.Boolean(),
+      items: t.Boolean(),
       _count: t.Boolean(),
     },
     { additionalProperties: false },
   ),
 );
 
-export const UserInclude = t.Partial(
+export const ShoppingListInclude = t.Partial(
   t.Object(
-    { lists: t.Boolean(), _count: t.Boolean() },
+    { items: t.Boolean(), _count: t.Boolean() },
     { additionalProperties: false },
   ),
 );
 
-export const UserOrderBy = t.Partial(
+export const ShoppingListOrderBy = t.Partial(
   t.Object(
     {
       id: t.Union([t.Literal("asc"), t.Literal("desc")], {
         additionalProperties: false,
       }),
-      email: t.Union([t.Literal("asc"), t.Literal("desc")], {
+      name: t.Union([t.Literal("asc"), t.Literal("desc")], {
         additionalProperties: false,
       }),
-      name: t.Union([t.Literal("asc"), t.Literal("desc")], {
+      status: t.Union([t.Literal("asc"), t.Literal("desc")], {
+        additionalProperties: false,
+      }),
+      createdAt: t.Union([t.Literal("asc"), t.Literal("desc")], {
+        additionalProperties: false,
+      }),
+      updatedAt: t.Union([t.Literal("asc"), t.Literal("desc")], {
         additionalProperties: false,
       }),
     },
@@ -188,16 +213,17 @@ export const UserOrderBy = t.Partial(
   ),
 );
 
-export const User = t.Composite([UserPlain, UserRelations], {
-  additionalProperties: false,
-});
-
-export const UserInputCreate = t.Composite(
-  [UserPlainInputCreate, UserRelationsInputCreate],
+export const ShoppingList = t.Composite(
+  [ShoppingListPlain, ShoppingListRelations],
   { additionalProperties: false },
 );
 
-export const UserInputUpdate = t.Composite(
-  [UserPlainInputUpdate, UserRelationsInputUpdate],
+export const ShoppingListInputCreate = t.Composite(
+  [ShoppingListPlainInputCreate, ShoppingListRelationsInputCreate],
+  { additionalProperties: false },
+);
+
+export const ShoppingListInputUpdate = t.Composite(
+  [ShoppingListPlainInputUpdate, ShoppingListRelationsInputUpdate],
   { additionalProperties: false },
 );
