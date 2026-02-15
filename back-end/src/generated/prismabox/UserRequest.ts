@@ -7,9 +7,7 @@ import { __nullable__ } from "./__nullable__";
 export const UserRequestPlain = t.Object(
   {
     id: t.String(),
-    requestText: t.String(),
-    llmResponse: t.String(),
-    actionType: t.String(),
+    data: t.String(),
     createdAt: t.Date(),
     metadata: __nullable__(t.String()),
   },
@@ -40,20 +38,13 @@ export const UserRequestRelations = t.Object(
 );
 
 export const UserRequestPlainInputCreate = t.Object(
-  {
-    requestText: t.String(),
-    llmResponse: t.String(),
-    actionType: t.String(),
-    metadata: t.Optional(__nullable__(t.String())),
-  },
+  { data: t.String(), metadata: t.Optional(__nullable__(t.String())) },
   { additionalProperties: false },
 );
 
 export const UserRequestPlainInputUpdate = t.Object(
   {
-    requestText: t.Optional(t.String()),
-    llmResponse: t.Optional(t.String()),
-    actionType: t.Optional(t.String()),
+    data: t.Optional(t.String()),
     metadata: t.Optional(__nullable__(t.String())),
   },
   { additionalProperties: false },
@@ -109,9 +100,7 @@ export const UserRequestWhere = t.Partial(
           NOT: t.Union([Self, t.Array(Self, { additionalProperties: false })]),
           OR: t.Array(Self, { additionalProperties: false }),
           id: t.String(),
-          requestText: t.String(),
-          llmResponse: t.String(),
-          actionType: t.String(),
+          data: t.String(),
           createdAt: t.Date(),
           metadata: t.String(),
         },
@@ -150,9 +139,7 @@ export const UserRequestWhereUnique = t.Recursive(
           t.Object(
             {
               id: t.String(),
-              requestText: t.String(),
-              llmResponse: t.String(),
-              actionType: t.String(),
+              data: t.String(),
               createdAt: t.Date(),
               metadata: t.String(),
             },
@@ -169,9 +156,7 @@ export const UserRequestSelect = t.Partial(
   t.Object(
     {
       id: t.Boolean(),
-      requestText: t.Boolean(),
-      llmResponse: t.Boolean(),
-      actionType: t.Boolean(),
+      data: t.Boolean(),
       createdAt: t.Boolean(),
       recipe: t.Boolean(),
       metadata: t.Boolean(),
@@ -194,13 +179,7 @@ export const UserRequestOrderBy = t.Partial(
       id: t.Union([t.Literal("asc"), t.Literal("desc")], {
         additionalProperties: false,
       }),
-      requestText: t.Union([t.Literal("asc"), t.Literal("desc")], {
-        additionalProperties: false,
-      }),
-      llmResponse: t.Union([t.Literal("asc"), t.Literal("desc")], {
-        additionalProperties: false,
-      }),
-      actionType: t.Union([t.Literal("asc"), t.Literal("desc")], {
+      data: t.Union([t.Literal("asc"), t.Literal("desc")], {
         additionalProperties: false,
       }),
       createdAt: t.Union([t.Literal("asc"), t.Literal("desc")], {

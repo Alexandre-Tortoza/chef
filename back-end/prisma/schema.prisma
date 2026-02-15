@@ -137,15 +137,11 @@ model BlacklistItem {
 // ============================================================================
 
 model UserRequest {
-  id          String   @id @default(cuid())
-  requestText String
-  llmResponse String
-  actionType  String
-  createdAt   DateTime @default(now())
-
-  recipe Recipe?
-
-  metadata String?
+  id        String   @id @default(cuid())
+  data      String
+  createdAt DateTime @default(now())
+  recipe    Recipe?
+  metadata  String?
 }
 
 // ============================================================================

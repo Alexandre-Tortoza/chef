@@ -1,40 +1,32 @@
 import prisma from "../database";
 
-export const saveMemory = async (conversationId: string, memory: string) => {
-  const existing = await prisma.memorie.findFirst({
-    where: { ownerId: conversationId },
+export const saveMemory = async (userRequestId: string, memory: string) => {
+  const existing = await prisma.userRequest.findFirst({
+    where: { id: userRequestId },
   });
 
   if (existing) {
-    return await prisma.memorie.update({
+    return await prisma.userRequest.update({
       where: { id: existing.id },
       data: { data: memory },
     });
   }
 
-  return await prisma.memorie.create({
+  return await prisma.userRequest.create({
     data: {
-      ownerId: conversationId,
+      id: userRequestId,
       data: memory,
     },
   });
 };
 
-export const getMemories = async (conversationId: string) => {
-  return await prisma.memorie.findMany({
+export const getMemory = async (userRequestId: string) => {
+  return await prisma.userRequest.findMany({
     where: {
-      ownerId: conversationId,
+      id: userRequestId,
     },
     orderBy: {
       createdAt: "asc",
-    },
-  });
-};
-
-export const clearMemories = async (conversationId: string) => {
-  return await prisma.memorie.deleteMany({
-    where: {
-      ownerId: conversationId,
     },
   });
 };

@@ -40,9 +40,7 @@ export const RecipeRelations = t.Object(
       t.Object(
         {
           id: t.String(),
-          requestText: t.String(),
-          llmResponse: t.String(),
-          actionType: t.String(),
+          data: t.String(),
           createdAt: t.Date(),
           metadata: __nullable__(t.String()),
         },
