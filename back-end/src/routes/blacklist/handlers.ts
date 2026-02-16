@@ -1,34 +1,62 @@
 import prisma from "../../database";
 
-// ============================================================================
-// HANDLERS - BLACKLIST (Lista Negra)
-// ============================================================================
-// Ingredientes que o usuário NÃO quer (alergia, preferência, etc.)
-// A IA DEVE consultar a blacklist antes de sugerir receitas
-// Se um ingrediente está na blacklist, a IA não pode usá-lo
+export const getBlacklist = async () => {
+  const items = await prisma.blacklistItem.findMany({
+    include: { ingredient: true },
+    orderBy: { createdAt: "desc" },
+  });
 
-// GET /api/blacklist
-// Listar todos os itens na blacklist
-// - Inclua o ingrediente (nome, categoria)
-export const listBlacklist = async () => {
-  // TODO: implementar
-  // await prisma.blacklistItem.findMany({
-  //   include: { ingredient: true },
-  //   orderBy: { createdAt: "desc" },
-  // });
+  return items;
 };
 
-// POST /api/blacklist
-// Adicionar ingrediente à blacklist
-// - Body: { ingredientId, reason? }
-// - ingredientId é unique na blacklist, não pode duplicar
-// - Se o ingrediente não existir no catálogo, crie ele primeiro
-export const addToBlacklist = async ({ body }: { body: any }) => {
-  // TODO: implementar
+export const postBlacklist = async ({
+  body,
+}: {
+  body: { ingredientId: string; reason?: string };
+}) => {
+  const existing = await prisma.blacklistItem.findUnique({
+    where: { ingredientId: body.ingredientId },
+  });
+
+  if (existing) {
+    throw new Error("Ingrediente já está na blacklist");
+  }
+
+  const ingredient = await prisma.ingredient.findUnique({
+    where: { id: body.ingredientId },
+  });
+
+  if (!ingredient) {
+    throw new Error("Ingrediente não encontrado");
+  }
+
+  const item = await prisma.blacklistItem.create({
+    data: {
+      ingredientId: body.ingredientId,
+      reason: body.reason,
+    },
+    include: { ingredient: true },
+  });
+
+  return item;
 };
 
-// DELETE /api/blacklist/:id
-// Remover ingrediente da blacklist (voltou a querer/poder comer)
-export const removeFromBlacklist = async ({ params }: { params: { id: string } }) => {
-  // TODO: implementar
+export const removeBlacklist = async ({
+  params,
+}: {
+  params: { id: string };
+}) => {
+  const item = await prisma.blacklistItem.findUnique({
+    where: { id: params.id },
+  });
+
+  if (!item) {
+    throw new Error("Item não encontrado na blacklist");
+  }
+
+  await prisma.blacklistItem.delete({
+    where: { id: params.id },
+  });
+
+  return { message: "Removido da blacklist" };
 };
