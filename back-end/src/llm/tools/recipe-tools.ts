@@ -1,11 +1,6 @@
 import type { ITool } from "../types";
 import prisma from "../../database";
 
-// ============================================================================
-// TOOLS - RECEITAS
-// ============================================================================
-// Tools que a IA usa para buscar e criar receitas
-
 export const recipeTools: ITool[] = [
   {
     type: "function",
@@ -96,42 +91,69 @@ export const recipeTools: ITool[] = [
   },
 ];
 
-// Executor das tools de receita
-// Recebe o nome da tool e os argumentos, executa a query no banco
 export const executeRecipeTool = async (
   toolName: string,
   args: Record<string, unknown>,
 ): Promise<string> => {
-  // TODO: implementar cada tool
-  //
-  // if (toolName === "search_recipes") {
-  //   const query = args.query as string;
-  //   const recipes = await prisma.recipe.findMany({
-  //     where: {
-  //       OR: [
-  //         { title: { contains: query } },
-  //         { description: { contains: query } },
-  //       ],
-  //     },
-  //     include: { ingredients: { include: { ingredient: true } } },
-  //     take: 5,
-  //   });
-  //   return JSON.stringify(recipes);
-  // }
-  //
-  // if (toolName === "get_recipe") {
-  //   const recipe = await prisma.recipe.findUnique({
-  //     where: { id: args.recipeId as string },
-  //     include: { ingredients: { include: { ingredient: true } } },
-  //   });
-  //   return JSON.stringify(recipe);
-  // }
-  //
-  // if (toolName === "create_recipe") {
-  //   // 1. Para cada ingrediente, faça upsert (crie se não existir)
-  //   // 2. Crie a receita com os RecipeIngredients
-  //   // 3. Retorne a receita criada
-  // }
+  if (toolName === "search_recipes") {
+    const query = args.query as string;
+    const recipes = await prisma.recipe.findMany({
+      where: {
+        OR: [
+          { title: { contains: query } },
+          { description: { contains: query } },
+        ],
+      },
+      include: { ingredients: { include: { ingredient: true } } },
+      take: 5,
+    });
+    return JSON.stringify(recipes);
+  }
 
-  return JSON.stringify({ error: `Tool "${toolName}" não implementada` });
+  if (toolName === "get_recipe") {
+    const recipe = await prisma.recipe.findUnique({
+      where: { id: args.recipeId as string },
+      include: { ingredients: { include: { ingredient: true } } },
+    });
+    return JSON.stringify(recipe);
+  }
+
+  if (toolName === "create_recipe") {
+    const ingredients = args.ingredients as Array<{
+      name: string;
+      quantity: string;
+      unit?: string;
+    }>;
+
+    const recipe = await prisma.recipe.create({
+      data: {
+        title: args.title as string,
+        description: args.description as string | undefined,
+        instructions: args.instructions as string,
+        servings: args.servings as number | undefined,
+        prepTime: args.prepTime as number | undefined,
+        cookTime: args.cookTime as number | undefined,
+        ingredients: {
+          create: await Promise.all(
+            ingredients.map(async (i) => {
+              const ingredient = await prisma.ingredient.upsert({
+                where: { name: i.name },
+                update: {},
+                create: { name: i.name },
+              });
+              return {
+                quantity: i.quantity,
+                unit: i.unit,
+                ingredientId: ingredient.id,
+              };
+            }),
+          ),
+        },
+      },
+      include: { ingredients: { include: { ingredient: true } } },
+    });
+    return JSON.stringify(recipe);
+  }
+
+  return JSON.stringify({ error: `Tool "${toolName}" não encontrada` });
 };

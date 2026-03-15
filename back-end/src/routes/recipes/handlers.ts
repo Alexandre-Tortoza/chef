@@ -1,90 +1,125 @@
-import type { Context } from "elysia";
 import prisma from "../../database";
-
-// ============================================================================
-// HANDLERS - RECIPES
-// ============================================================================
-// Cada handler recebe o context do Elysia (body, params, query, etc.)
-// Use prisma.recipe para acessar o model no banco
-// Lembre de incluir os ingredients ao buscar receitas: { include: { ingredients: { include: { ingredient: true } } } }
+import type { RecipeParams, RecipeSearchQuery, RecipeBody } from "./types";
 
 // GET /api/recipes
-// Listar todas as receitas
-// - Use query params para paginação (skip, take)
-// - Inclua os ingredientes na resposta
-export const listRecipes = async () => {
-  // TODO: implementar
-  // const recipes = await prisma.recipe.findMany({
-  //   include: { ingredients: { include: { ingredient: true } } },
-  //   orderBy: { createdAt: "desc" },
-  // });
+export const getAllRecipe = async () => {
+  const recipes = await prisma.recipe.findMany({
+    include: { ingredients: { include: { ingredient: true } } },
+    orderBy: { createdAt: "desc" },
+  });
+
+  return recipes;
 };
 
 // GET /api/recipes/:id
-// Buscar receita por ID
-// - Inclua ingredientes e a relação com userRequest
-// - Retorne 404 se não encontrar
-export const getRecipe = async ({ params }: { params: { id: string } }) => {
-  // TODO: implementar
-  // const recipe = await prisma.recipe.findUnique({
-  //   where: { id: params.id },
-  //   include: {
-  //     ingredients: { include: { ingredient: true } },
-  //     userRequest: true,
-  //   },
-  // });
+export const getRecipe = async ({ params }: RecipeParams) => {
+  const recipe = await prisma.recipe.findUnique({
+    where: { id: params.id },
+    include: {
+      ingredients: { include: { ingredient: true } },
+      userRequest: true,
+    },
+  });
+
+  if (!recipe) {
+    throw new Error("Receita não encontrada");
+  }
+
+  return recipe;
 };
 
 // POST /api/recipes
-// Criar nova receita
-// - Body: { title, description?, instructions, servings?, prepTime?, cookTime?, ingredients: [{ ingredientId, quantity, unit?, notes? }] }
-// - Crie a receita e os RecipeIngredient em uma transaction
-// - Se o ingrediente não existir, crie ele antes (connectOrCreate)
-export const createRecipe = async ({ body }: { body: any }) => {
-  // TODO: implementar
-  // Use prisma.$transaction ou nested create:
-  // await prisma.recipe.create({
-  //   data: {
-  //     title: body.title,
-  //     instructions: body.instructions,
-  //     ...
-  //     ingredients: {
-  //       create: body.ingredients.map(i => ({
-  //         quantity: i.quantity,
-  //         unit: i.unit,
-  //         ingredient: { connect: { id: i.ingredientId } },
-  //       })),
-  //     },
-  //   },
-  // });
+export const postRecipe = async ({ body }: RecipeBody) => {
+  const recipe = await prisma.recipe.create({
+    data: {
+      title: body.title,
+      description: body.description,
+      instructions: body.instructions,
+      servings: body.servings,
+      prepTime: body.prepTime,
+      cookTime: body.cookTime,
+      ingredients: {
+        create: body.ingredients.map((i) => ({
+          quantity: i.quantity,
+          unit: i.unit,
+          notes: i.notes,
+          ingredient: { connect: { id: i.ingredientId } },
+        })),
+      },
+    },
+    include: { ingredients: { include: { ingredient: true } } },
+  });
+
+  return recipe;
 };
 
 // PUT /api/recipes/:id
-// Atualizar receita existente
-// - Atualize apenas os campos enviados no body
-// - Para ingredientes: delete os antigos e recrie (strategy simples)
-export const updateRecipe = async ({ params, body }: { params: { id: string }; body: any }) => {
-  // TODO: implementar
+export const patchRecipe = async ({ params, body }: RecipeParams & RecipeBody) => {
+  const existing = await prisma.recipe.findUnique({
+    where: { id: params.id },
+  });
+
+  if (!existing) {
+    throw new Error("Receita não encontrada");
+  }
+
+  const recipe = await prisma.$transaction(async (tx) => {
+    await tx.recipeIngredient.deleteMany({
+      where: { recipeId: params.id },
+    });
+
+    return tx.recipe.update({
+      where: { id: params.id },
+      data: {
+        title: body.title,
+        description: body.description,
+        instructions: body.instructions,
+        servings: body.servings,
+        prepTime: body.prepTime,
+        cookTime: body.cookTime,
+        ingredients: {
+          create: body.ingredients.map((i) => ({
+            quantity: i.quantity,
+            unit: i.unit,
+            notes: i.notes,
+            ingredient: { connect: { id: i.ingredientId } },
+          })),
+        },
+      },
+      include: { ingredients: { include: { ingredient: true } } },
+    });
+  });
+
+  return recipe;
 };
 
 // DELETE /api/recipes/:id
-// Deletar receita (cascade deleta RecipeIngredients automaticamente)
-export const deleteRecipe = async ({ params }: { params: { id: string } }) => {
-  // TODO: implementar
-  // await prisma.recipe.delete({ where: { id: params.id } });
+export const deleteRecipe = async ({ params }: RecipeParams) => {
+  const existing = await prisma.recipe.findUnique({
+    where: { id: params.id },
+  });
+
+  if (!existing) {
+    throw new Error("Receita não encontrada");
+  }
+
+  await prisma.recipe.delete({ where: { id: params.id } });
+
+  return { message: "Receita removida" };
 };
 
 // GET /api/recipes/search?q=macarrao
-// Buscar receitas por termo (título ou descrição)
-// - Use contains para busca parcial
-export const searchRecipes = async ({ query }: { query: { q: string } }) => {
-  // TODO: implementar
-  // await prisma.recipe.findMany({
-  //   where: {
-  //     OR: [
-  //       { title: { contains: query.q } },
-  //       { description: { contains: query.q } },
-  //     ],
-  //   },
-  // });
+export const searchRecipe = async ({ query }: RecipeSearchQuery) => {
+  const recipes = await prisma.recipe.findMany({
+    where: {
+      OR: [
+        { title: { contains: query.q } },
+        { description: { contains: query.q } },
+      ],
+    },
+    include: { ingredients: { include: { ingredient: true } } },
+    orderBy: { createdAt: "desc" },
+  });
+
+  return recipes;
 };

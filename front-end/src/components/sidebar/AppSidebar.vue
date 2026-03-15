@@ -7,6 +7,9 @@
     <div class="p-2 flex flex-col gap-1">
       <SidebarChat />
       <SidebarNewList />
+      <SidebarIngredients />
+      <SidebarRecipes />
+
     </div>
     <hr class="border-t-4 border-shaft-950" />
     <div class="p-2">
@@ -20,4 +23,6 @@ import SidebarLists from './SidebarLists.vue'
 import SidebarChat from './SidebarChat.vue'
 import SidebarHeader from './SidebarHeader.vue'
 import SidebarNewList from './SidebarNewList.vue'
+import SidebarIngredients from './SidebarIngredients.vue'
+import SidebarRecipes from './SidebarRecipes.vue'
 </script>

@@ -1,22 +1,29 @@
-import { Elysia } from "elysia";
+import { Elysia, t } from "elysia";
 import {
-  listIngredients,
+  getAllIngredients,
   getIngredient,
-  createIngredient,
-  updateIngredient,
+  postIngredient,
+  patchIngredient,
   deleteIngredient,
 } from "./handlers";
 
-// ============================================================================
-// ROTAS - INGREDIENTS (prefixo: /api/ingredients)
-// ============================================================================
-// Catálogo de ingredientes conhecidos pelo sistema
-
 const ingredientsRoutes = new Elysia({ prefix: "/ingredients" })
-  .get("/", listIngredients)
+  .get("/", getAllIngredients)
   .get("/:id", getIngredient)
-  .post("/", createIngredient)
-  .put("/:id", updateIngredient)
+  .post("/", postIngredient, {
+    body: t.Object({
+      name: t.String(),
+      category: t.Optional(t.String()),
+      defaultUnit: t.Optional(t.String()),
+    }),
+  })
+  .put("/:id", patchIngredient, {
+    body: t.Object({
+      name: t.String(),
+      category: t.Optional(t.String()),
+      defaultUnit: t.Optional(t.String()),
+    }),
+  })
   .delete("/:id", deleteIngredient);
 
 export default ingredientsRoutes;

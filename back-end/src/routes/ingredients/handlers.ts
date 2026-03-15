@@ -1,49 +1,91 @@
 import prisma from "../../database";
-
-// ============================================================================
-// HANDLERS - INGREDIENTS
-// ============================================================================
-// Ingredientes são o "catálogo" de itens que o sistema conhece
-// A IA cria ingredientes automaticamente ao montar receitas
-// O frontend usa pra mostrar ingredientes disponíveis e categorizar
+import type { IngredientParams, IngredientQuery, IngredientBody } from "./types";
 
 // GET /api/ingredients
-// Listar todos os ingredientes
-// - Use query.category para filtrar por categoria (opcional)
-// - Ordene por nome
-export const listIngredients = async ({ query }: { query: { category?: string } }) => {
-  // TODO: implementar
-  // const where = query.category ? { category: query.category } : {};
-  // await prisma.ingredient.findMany({ where, orderBy: { name: "asc" } });
+export const getAllIngredients = async ({ query }: IngredientQuery) => {
+  const where = query.category ? { category: query.category } : {};
+  const items = await prisma.ingredient.findMany({
+    where,
+    orderBy: { name: "asc" },
+  });
+
+  return items;
 };
 
 // GET /api/ingredients/:id
-// Buscar ingrediente por ID
-// - Inclua as relações: stockItems, recipeIngredients, blacklistItems
-// - Útil pra saber se o ingrediente tá no estoque, em quais receitas aparece, etc.
-export const getIngredient = async ({ params }: { params: { id: string } }) => {
-  // TODO: implementar
+export const getIngredient = async ({ params }: IngredientParams) => {
+  const ingredient = await prisma.ingredient.findUnique({
+    where: { id: params.id },
+    include: {
+      stockItems: true,
+      recipeIngredients: true,
+      blacklistItems: true,
+    },
+  });
+
+  if (!ingredient) {
+    throw new Error("Ingrediente não encontrado");
+  }
+
+  return ingredient;
 };
 
 // POST /api/ingredients
-// Criar novo ingrediente
-// - Body: { name, category?, defaultUnit? }
-// - name é unique, valide duplicata
-export const createIngredient = async ({ body }: { body: any }) => {
-  // TODO: implementar
-  // await prisma.ingredient.create({ data: body });
+export const postIngredient = async ({ body }: IngredientBody) => {
+  const existing = await prisma.ingredient.findUnique({
+    where: { name: body.name },
+  });
+
+  if (existing) {
+    throw new Error("Ingrediente já existe");
+  }
+
+  const ingredient = await prisma.ingredient.create({
+    data: {
+      name: body.name,
+      category: body.category,
+      defaultUnit: body.defaultUnit,
+    },
+  });
+
+  return ingredient;
 };
 
 // PUT /api/ingredients/:id
-// Atualizar ingrediente (nome, categoria, unidade padrão)
-export const updateIngredient = async ({ params, body }: { params: { id: string }; body: any }) => {
-  // TODO: implementar
+export const patchIngredient = async ({ params, body }: IngredientParams & IngredientBody) => {
+  const existing = await prisma.ingredient.findUnique({
+    where: { id: params.id },
+  });
+
+  if (!existing) {
+    throw new Error("Ingrediente não encontrado");
+  }
+
+  const ingredient = await prisma.ingredient.update({
+    where: { id: params.id },
+    data: {
+      name: body.name,
+      category: body.category,
+      defaultUnit: body.defaultUnit,
+    },
+  });
+
+  return ingredient;
 };
 
 // DELETE /api/ingredients/:id
-// Deletar ingrediente
-// - Cuidado: cascade pode deletar stockItems e shoppingItems
-// - Considere verificar se está em uso antes de deletar
-export const deleteIngredient = async ({ params }: { params: { id: string } }) => {
-  // TODO: implementar
+export const deleteIngredient = async ({ params }: IngredientParams) => {
+  const existing = await prisma.ingredient.findUnique({
+    where: { id: params.id },
+  });
+
+  if (!existing) {
+    throw new Error("Ingrediente não encontrado");
+  }
+
+  await prisma.ingredient.delete({
+    where: { id: params.id },
+  });
+
+  return { message: "Ingrediente removido" };
 };

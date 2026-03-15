@@ -1,28 +1,37 @@
-import { Elysia } from "elysia";
+import { Elysia, t } from "elysia";
 import {
-  listPlans,
+  getAllPlan,
   getPlan,
-  createPlan,
-  updatePlan,
+  postPlan,
+  patchPlan,
   deletePlan,
-  addPlanItem,
-  removePlanItem,
+  postPlanItem,
+  deletePlanItem,
 } from "./handlers";
 
-// ============================================================================
-// ROTAS - PLANS (prefixo: /api/plans)
-// ============================================================================
-// Planos de refeição recorrentes (dietas semanais, etc.)
+const planBodySchema = t.Object({
+  name: t.String(),
+  description: t.Optional(t.String()),
+  frequency: t.String(),
+  startDate: t.String(),
+  endDate: t.Optional(t.String()),
+  active: t.Optional(t.Boolean()),
+});
 
 const plansRoutes = new Elysia({ prefix: "/plans" })
-  .get("/", listPlans)
+  .get("/", getAllPlan)
   .get("/:id", getPlan)
-  .post("/", createPlan)
-  .put("/:id", updatePlan)
+  .post("/", postPlan, { body: planBodySchema })
+  .put("/:id", patchPlan, { body: planBodySchema })
   .delete("/:id", deletePlan)
-
-  // --- Itens do plano ---
-  .post("/:planId/items", addPlanItem)
-  .delete("/:planId/items/:itemId", removePlanItem);
+  .post("/:id/items", postPlanItem, {
+    body: t.Object({
+      recipeId: t.String(),
+      dayOfWeek: t.Optional(t.Number()),
+      dayOfMonth: t.Optional(t.Number()),
+      mealType: t.Optional(t.String()),
+    }),
+  })
+  .delete("/:id/items/:itemId", deletePlanItem);
 
 export default plansRoutes;

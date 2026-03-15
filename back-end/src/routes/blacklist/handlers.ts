@@ -1,6 +1,7 @@
 import prisma from "../../database";
+import type { BlacklistParams, BlacklistBody } from "./types";
 
-export const getBlacklist = async () => {
+export const getAllBlacklist = async () => {
   const items = await prisma.blacklistItem.findMany({
     include: { ingredient: true },
     orderBy: { createdAt: "desc" },
@@ -9,11 +10,7 @@ export const getBlacklist = async () => {
   return items;
 };
 
-export const postBlacklist = async ({
-  body,
-}: {
-  body: { ingredientId: string; reason?: string };
-}) => {
+export const postBlacklist = async ({ body }: BlacklistBody) => {
   const existing = await prisma.blacklistItem.findUnique({
     where: { ingredientId: body.ingredientId },
   });
@@ -41,11 +38,7 @@ export const postBlacklist = async ({
   return item;
 };
 
-export const removeBlacklist = async ({
-  params,
-}: {
-  params: { id: string };
-}) => {
+export const deleteBlacklist = async ({ params }: BlacklistParams) => {
   const item = await prisma.blacklistItem.findUnique({
     where: { id: params.id },
   });

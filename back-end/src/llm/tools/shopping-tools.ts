@@ -1,15 +1,6 @@
 import type { ITool } from "../types";
 import prisma from "../../database";
 
-// ============================================================================
-// TOOLS - LISTA DE COMPRAS
-// ============================================================================
-// Tools que a IA usa para montar e gerenciar listas de compras
-// Fluxo principal:
-//   1. IA cria receita (recipe-tools)
-//   2. IA checa estoque (stock-tools)
-//   3. IA cria lista com o que falta (shopping-tools)
-
 export const shoppingTools: ITool[] = [
   {
     type: "function",
@@ -105,33 +96,82 @@ export const shoppingTools: ITool[] = [
   },
 ];
 
-// Executor das tools de lista de compras
+type ShoppingItemInput = {
+  ingredientName: string;
+  quantity: string;
+  unit?: string;
+  priority?: number;
+};
+
+const findOrCreateIngredient = async (name: string) => {
+  return prisma.ingredient.upsert({
+    where: { name },
+    update: {},
+    create: { name },
+  });
+};
+
 export const executeShoppingTool = async (
   toolName: string,
   args: Record<string, unknown>,
 ): Promise<string> => {
-  // TODO: implementar
-  //
-  // if (toolName === "create_shopping_list") {
-  //   // 1. Crie a ShoppingList
-  //   // 2. Para cada item, busque/crie o Ingredient pelo nome
-  //   // 3. Crie os ShoppingItems vinculados à lista
-  //   // 4. Retorne a lista criada com os itens
-  // }
-  //
-  // if (toolName === "add_shopping_items") {
-  //   // 1. Busque a lista pelo ID
-  //   // 2. Para cada item, busque/crie o Ingredient
-  //   // 3. Crie os ShoppingItems
-  // }
-  //
-  // if (toolName === "get_active_shopping_lists") {
-  //   const lists = await prisma.shoppingList.findMany({
-  //     where: { status: "active" },
-  //     include: { items: { include: { ingredient: true } } },
-  //   });
-  //   return JSON.stringify(lists);
-  // }
+  if (toolName === "create_shopping_list") {
+    const items = args.items as ShoppingItemInput[];
+    const recipeId = args.recipeId as string | undefined;
 
-  return JSON.stringify({ error: `Tool "${toolName}" não implementada` });
+    const list = await prisma.shoppingList.create({
+      data: { name: args.name as string },
+    });
+
+    const createdItems = await Promise.all(
+      items.map(async (item) => {
+        const ingredient = await findOrCreateIngredient(item.ingredientName);
+        return prisma.shoppingItem.create({
+          data: {
+            shoppingListId: list.id,
+            ingredientId: ingredient.id,
+            quantity: item.quantity,
+            unit: item.unit,
+            priority: item.priority ?? 0,
+            recipeId,
+          },
+          include: { ingredient: true },
+        });
+      }),
+    );
+
+    return JSON.stringify({ ...list, items: createdItems });
+  }
+
+  if (toolName === "add_shopping_items") {
+    const listId = args.shoppingListId as string;
+    const items = args.items as ShoppingItemInput[];
+
+    const createdItems = await Promise.all(
+      items.map(async (item) => {
+        const ingredient = await findOrCreateIngredient(item.ingredientName);
+        return prisma.shoppingItem.create({
+          data: {
+            shoppingListId: listId,
+            ingredientId: ingredient.id,
+            quantity: item.quantity,
+            unit: item.unit,
+          },
+          include: { ingredient: true },
+        });
+      }),
+    );
+
+    return JSON.stringify(createdItems);
+  }
+
+  if (toolName === "get_active_shopping_lists") {
+    const lists = await prisma.shoppingList.findMany({
+      where: { status: "active" },
+      include: { items: { include: { ingredient: true } } },
+    });
+    return JSON.stringify(lists);
+  }
+
+  return JSON.stringify({ error: `Tool "${toolName}" não encontrada` });
 };

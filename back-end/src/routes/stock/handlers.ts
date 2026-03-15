@@ -1,61 +1,112 @@
 import prisma from "../../database";
-
-// ============================================================================
-// HANDLERS - STOCK (Estoque)
-// ============================================================================
-// Estoque é o que o usuário TEM em casa
-// A IA consulta o estoque para decidir o que colocar na lista de compras
-// Quando o usuário compra algo (ShoppingItem.purchased = true), cria um StockItem
+import type { StockParams, StockQuery, StockBody } from "./types";
 
 // GET /api/stock
-// Listar todos os itens no estoque
-// - Inclua o ingrediente relacionado (nome, categoria)
-// - Filtre por location se query.location vier (geladeira, despensa, etc.)
-export const listStock = async ({ query }: { query: { location?: string } }) => {
-  // TODO: implementar
-  // await prisma.stockItem.findMany({
-  //   include: { ingredient: true },
-  //   orderBy: { expiryDate: "asc" }, // itens mais perto de vencer primeiro
-  // });
+export const getAllStock = async ({ query }: StockQuery) => {
+  const where = query.location ? { location: query.location } : {};
+  const items = await prisma.stockItem.findMany({
+    where,
+    include: { ingredient: true },
+    orderBy: { expiryDate: "asc" },
+  });
+
+  return items;
 };
 
 // GET /api/stock/:id
-// Buscar item do estoque por ID
-export const getStockItem = async ({ params }: { params: { id: string } }) => {
-  // TODO: implementar
+export const getStock = async ({ params }: StockParams) => {
+  const item = await prisma.stockItem.findUnique({
+    where: { id: params.id },
+    include: { ingredient: true },
+  });
+
+  if (!item) {
+    throw new Error("Item não encontrado no estoque");
+  }
+
+  return item;
 };
 
 // POST /api/stock
-// Adicionar item ao estoque
-// - Body: { ingredientId, quantity, unit?, expiryDate?, location? }
-// - Chamado quando o usuário marca um item como comprado
-// - Também pode ser adicionado manualmente
-export const createStockItem = async ({ body }: { body: any }) => {
-  // TODO: implementar
+export const postStock = async ({ body }: StockBody) => {
+  const ingredient = await prisma.ingredient.findUnique({
+    where: { id: body.ingredientId },
+  });
+
+  if (!ingredient) {
+    throw new Error("Ingrediente não encontrado");
+  }
+
+  const item = await prisma.stockItem.create({
+    data: {
+      ingredientId: body.ingredientId,
+      quantity: body.quantity,
+      unit: body.unit,
+      expiryDate: body.expiryDate ? new Date(body.expiryDate) : undefined,
+      location: body.location,
+    },
+    include: { ingredient: true },
+  });
+
+  return item;
 };
 
 // PUT /api/stock/:id
-// Atualizar item do estoque (quantidade, validade, localização)
-// - Útil quando o usuário consome parte do estoque
-export const updateStockItem = async ({ params, body }: { params: { id: string }; body: any }) => {
-  // TODO: implementar
+export const patchStock = async ({ params, body }: StockParams & StockBody) => {
+  const existing = await prisma.stockItem.findUnique({
+    where: { id: params.id },
+  });
+
+  if (!existing) {
+    throw new Error("Item não encontrado no estoque");
+  }
+
+  const item = await prisma.stockItem.update({
+    where: { id: params.id },
+    data: {
+      quantity: body.quantity,
+      unit: body.unit,
+      expiryDate: body.expiryDate ? new Date(body.expiryDate) : undefined,
+      location: body.location,
+    },
+    include: { ingredient: true },
+  });
+
+  return item;
 };
 
 // DELETE /api/stock/:id
-// Remover item do estoque (acabou, estragou, etc.)
-export const deleteStockItem = async ({ params }: { params: { id: string } }) => {
-  // TODO: implementar
+export const deleteStock = async ({ params }: StockParams) => {
+  const existing = await prisma.stockItem.findUnique({
+    where: { id: params.id },
+  });
+
+  if (!existing) {
+    throw new Error("Item não encontrado no estoque");
+  }
+
+  await prisma.stockItem.delete({
+    where: { id: params.id },
+  });
+
+  return { message: "Removido do estoque" };
 };
 
 // GET /api/stock/expiring
-// Listar itens próximos de vencer (próximos 7 dias)
-// - A IA pode usar isso pra sugerir receitas que aproveitem esses ingredientes
-export const getExpiringItems = async () => {
-  // TODO: implementar
-  // const sevenDaysFromNow = new Date();
-  // sevenDaysFromNow.setDate(sevenDaysFromNow.getDate() + 7);
-  // await prisma.stockItem.findMany({
-  //   where: { expiryDate: { lte: sevenDaysFromNow, not: null } },
-  //   include: { ingredient: true },
-  // });
+export const getExpiringStock = async () => {
+  const sevenDaysFromNow = new Date();
+  sevenDaysFromNow.setDate(sevenDaysFromNow.getDate() + 7);
+
+  const items = await prisma.stockItem.findMany({
+    where: {
+      expiryDate: {
+        lte: sevenDaysFromNow,
+        not: null,
+      },
+    },
+    include: { ingredient: true },
+    orderBy: { expiryDate: "asc" },
+  });
+
+  return items;
 };

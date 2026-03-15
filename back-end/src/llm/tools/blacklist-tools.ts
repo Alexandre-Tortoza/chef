@@ -1,13 +1,6 @@
 import type { ITool } from "../types";
 import prisma from "../../database";
 
-// ============================================================================
-// TOOLS - BLACKLIST
-// ============================================================================
-// Tool que a IA usa para verificar ingredientes proibidos
-// A IA DEVE chamar isso antes de sugerir receitas para não incluir algo
-// que o usuário tem alergia/restrição
-
 export const blacklistTools: ITool[] = [
   {
     type: "function",
@@ -24,19 +17,16 @@ export const blacklistTools: ITool[] = [
   },
 ];
 
-// Executor da tool de blacklist
 export const executeBlacklistTool = async (
   toolName: string,
-  args: Record<string, unknown>,
+  _args: Record<string, unknown>,
 ): Promise<string> => {
-  // TODO: implementar
-  //
-  // if (toolName === "get_blacklist") {
-  //   const blacklist = await prisma.blacklistItem.findMany({
-  //     include: { ingredient: true },
-  //   });
-  //   return JSON.stringify(blacklist);
-  // }
+  if (toolName === "get_blacklist") {
+    const blacklist = await prisma.blacklistItem.findMany({
+      include: { ingredient: true },
+    });
+    return JSON.stringify(blacklist);
+  }
 
-  return JSON.stringify({ error: `Tool "${toolName}" não implementada` });
+  return JSON.stringify({ error: `Tool "${toolName}" não encontrada` });
 };

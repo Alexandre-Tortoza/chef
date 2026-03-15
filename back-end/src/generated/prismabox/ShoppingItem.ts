@@ -28,6 +28,7 @@ export const ShoppingItemRelations = t.Object(
         id: t.String(),
         name: t.String(),
         status: t.String(),
+        recurrence: t.String(),
         createdAt: t.Date(),
         updatedAt: t.Date(),
       },

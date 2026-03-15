@@ -1,19 +1,15 @@
 <template>
   <span class="font-bold ml-2">Listas</span>
-  <ListItem v-for="listItem in list" :key="listItem.id" :name="listItem.name" :id="listItem.id" />
+  <div v-if="store.loading" class="text-shaft-500 text-sm ml-2">Carregando...</div>
+  <ListItem v-for="listItem in store.lists" :key="listItem.id" :name="listItem.name" :id="listItem.id" />
 </template>
 
 <script setup lang="ts">
+import { onMounted } from 'vue'
 import ListItem from './ListItem.vue'
+import { useShoppingStore } from '@/stores/shopping'
 
-const list = [
-  {
-    id: 0,
-    name: 'Compras da semana',
-  },
-  {
-    id: 1,
-    name: 'Compras da para fazer lasanha',
-  },
-]
+const store = useShoppingStore()
+
+onMounted(() => store.fetchLists())
 </script>

@@ -1,18 +1,18 @@
 import { Elysia, t } from "elysia";
 import {
-  getBlacklist,
+  getAllBlacklist,
   postBlacklist,
-  removeBlacklist,
+  deleteBlacklist,
 } from "./handlers";
 
 const blacklistRoutes = new Elysia({ prefix: "/blacklist" })
-  .get("/", getBlacklist)
+  .get("/", getAllBlacklist)
   .post("/", postBlacklist, {
     body: t.Object({
       ingredientId: t.String(),
       reason: t.Optional(t.String()),
     }),
   })
-  .delete("/:id", removeBlacklist);
+  .delete("/:id", deleteBlacklist);
 
 export default blacklistRoutes;

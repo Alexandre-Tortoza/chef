@@ -9,6 +9,7 @@ export const ShoppingListPlain = t.Object(
     id: t.String(),
     name: t.String(),
     status: t.String(),
+    recurrence: t.String(),
     createdAt: t.Date(),
     updatedAt: t.Date(),
   },
@@ -41,12 +42,20 @@ export const ShoppingListRelations = t.Object(
 );
 
 export const ShoppingListPlainInputCreate = t.Object(
-  { name: t.String(), status: t.Optional(t.String()) },
+  {
+    name: t.String(),
+    status: t.Optional(t.String()),
+    recurrence: t.Optional(t.String()),
+  },
   { additionalProperties: false },
 );
 
 export const ShoppingListPlainInputUpdate = t.Object(
-  { name: t.Optional(t.String()), status: t.Optional(t.String()) },
+  {
+    name: t.Optional(t.String()),
+    status: t.Optional(t.String()),
+    recurrence: t.Optional(t.String()),
+  },
   { additionalProperties: false },
 );
 
@@ -116,6 +125,7 @@ export const ShoppingListWhere = t.Partial(
           id: t.String(),
           name: t.String(),
           status: t.String(),
+          recurrence: t.String(),
           createdAt: t.Date(),
           updatedAt: t.Date(),
         },
@@ -156,6 +166,7 @@ export const ShoppingListWhereUnique = t.Recursive(
               id: t.String(),
               name: t.String(),
               status: t.String(),
+              recurrence: t.String(),
               createdAt: t.Date(),
               updatedAt: t.Date(),
             },
@@ -174,6 +185,7 @@ export const ShoppingListSelect = t.Partial(
       id: t.Boolean(),
       name: t.Boolean(),
       status: t.Boolean(),
+      recurrence: t.Boolean(),
       createdAt: t.Boolean(),
       updatedAt: t.Boolean(),
       items: t.Boolean(),
@@ -200,6 +212,9 @@ export const ShoppingListOrderBy = t.Partial(
         additionalProperties: false,
       }),
       status: t.Union([t.Literal("asc"), t.Literal("desc")], {
+        additionalProperties: false,
+      }),
+      recurrence: t.Union([t.Literal("asc"), t.Literal("desc")], {
         additionalProperties: false,
       }),
       createdAt: t.Union([t.Literal("asc"), t.Literal("desc")], {

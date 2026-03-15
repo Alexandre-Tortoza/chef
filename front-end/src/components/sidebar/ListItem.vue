@@ -19,6 +19,6 @@ import { RouterLink } from 'vue-router'
 
 defineProps<{
   name: string
-  id: number
+  id: string
 }>()
 </script>

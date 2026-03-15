@@ -1,116 +1,193 @@
 import prisma from "../../database";
+import type {
+  ShoppingListParams,
+  ShoppingListQuery,
+  ShoppingListBody,
+  ShoppingItemParams,
+  ShoppingItemBody,
+} from "./types";
 
-// ============================================================================
-// HANDLERS - SHOPPING (Lista de Compras)
-// ============================================================================
-// A IA monta a lista de compras automaticamente a partir das receitas
-// Fluxo: Receita → verifica estoque → o que falta vai pra lista
-// Quando o usuário marca como comprado → cria StockItem
-
-// --- SHOPPING LIST (a lista em si) ---
+// --- SHOPPING LIST ---
 
 // GET /api/shopping
-// Listar todas as listas de compras
-// - Filtre por status: "active" | "completed" | "archived"
-// - Inclua contagem de itens e itens comprados
-export const listShoppingLists = async ({ query }: { query: { status?: string } }) => {
-  // TODO: implementar
-  // await prisma.shoppingList.findMany({
-  //   where: query.status ? { status: query.status } : {},
-  //   include: { _count: { select: { items: true } } },
-  //   orderBy: { createdAt: "desc" },
-  // });
+export const getAllShoppingList = async ({ query }: ShoppingListQuery) => {
+  const where = query.status ? { status: query.status } : {};
+  const lists = await prisma.shoppingList.findMany({
+    where,
+    include: { _count: { select: { items: true } } },
+    orderBy: { createdAt: "desc" },
+  });
+
+  return lists;
 };
 
 // GET /api/shopping/:id
-// Buscar lista de compras por ID com todos os itens
-// - Inclua ingrediente de cada item
-// - Ordene itens: não comprados primeiro, depois por prioridade
-export const getShoppingList = async ({ params }: { params: { id: string } }) => {
-  // TODO: implementar
-  // await prisma.shoppingList.findUnique({
-  //   where: { id: params.id },
-  //   include: {
-  //     items: {
-  //       include: { ingredient: true },
-  //       orderBy: [{ purchased: "asc" }, { priority: "desc" }],
-  //     },
-  //   },
-  // });
+export const getShoppingList = async ({ params }: ShoppingListParams) => {
+  const list = await prisma.shoppingList.findUnique({
+    where: { id: params.id },
+    include: {
+      items: {
+        include: { ingredient: true },
+        orderBy: [{ purchased: "asc" }, { priority: "desc" }],
+      },
+    },
+  });
+
+  console.log(list)
+
+  if (!list) {
+    throw new Error("Lista não encontrada");
+  }
+
+  return list;
 };
 
 // POST /api/shopping
-// Criar nova lista de compras
-// - Body: { name }
-// - Status começa como "active"
-export const createShoppingList = async ({ body }: { body: any }) => {
-  // TODO: implementar
+export const postShoppingList = async ({ body }: ShoppingListBody) => {
+  const list = await prisma.shoppingList.create({
+    data: {
+      name: body.name,
+      recurrence: body.recurrence,
+    },
+  });
+
+  return list;
 };
 
 // PUT /api/shopping/:id
-// Atualizar lista (nome, status)
-// - Quando todos os itens forem comprados, mude status para "completed"
-export const updateShoppingList = async ({ params, body }: { params: { id: string }; body: any }) => {
-  // TODO: implementar
+export const patchShoppingList = async ({ params, body }: ShoppingListParams & ShoppingListBody) => {
+  const existing = await prisma.shoppingList.findUnique({
+    where: { id: params.id },
+  });
+
+  if (!existing) {
+    throw new Error("Lista não encontrada");
+  }
+
+  const list = await prisma.shoppingList.update({
+    where: { id: params.id },
+    data: {
+      name: body.name,
+      status: body.status,
+      recurrence: body.recurrence,
+    },
+  });
+
+  return list;
 };
 
 // DELETE /api/shopping/:id
-// Deletar lista de compras (cascade deleta os items)
-export const deleteShoppingList = async ({ params }: { params: { id: string } }) => {
-  // TODO: implementar
+export const deleteShoppingList = async ({ params }: ShoppingListParams) => {
+  const existing = await prisma.shoppingList.findUnique({
+    where: { id: params.id },
+  });
+
+  if (!existing) {
+    throw new Error("Lista não encontrada");
+  }
+
+  await prisma.shoppingList.delete({
+    where: { id: params.id },
+  });
+
+  return { message: "Lista removida" };
 };
 
-// --- SHOPPING ITEMS (itens dentro da lista) ---
+// --- SHOPPING ITEMS ---
 
 // POST /api/shopping/:listId/items
-// Adicionar item à lista
-// - Body: { ingredientId, quantity, unit?, notes?, priority?, recipeId? }
-// - recipeId é opcional, serve pra rastrear de qual receita veio o item
-export const addShoppingItem = async ({ params, body }: { params: { listId: string }; body: any }) => {
-  // TODO: implementar
-  // await prisma.shoppingItem.create({
-  //   data: {
-  //     ...body,
-  //     shoppingListId: params.listId,
-  //   },
-  // });
+export const postShoppingItem = async ({ params, body }: { params: { id: string } } & ShoppingItemBody) => {
+  const list = await prisma.shoppingList.findUnique({
+    where: { id: params.id },
+  });
+
+  if (!list) {
+    throw new Error("Lista não encontrada");
+  }
+
+  const item = await prisma.shoppingItem.create({
+    data: {
+      shoppingListId: params.id,
+      ingredientId: body.ingredientId,
+      quantity: body.quantity,
+      unit: body.unit,
+      notes: body.notes,
+      priority: body.priority,
+      recipeId: body.recipeId,
+    },
+    include: { ingredient: true },
+  });
+
+  return item;
 };
 
 // PUT /api/shopping/:listId/items/:itemId
-// Atualizar item (quantidade, prioridade, etc.)
-export const updateShoppingItem = async ({
-  params,
-  body,
-}: {
-  params: { listId: string; itemId: string };
-  body: any;
-}) => {
-  // TODO: implementar
+export const patchShoppingItem = async ({ params, body }: ShoppingItemParams & ShoppingItemBody) => {
+  const existing = await prisma.shoppingItem.findUnique({
+    where: { id: params.itemId },
+  });
+
+  if (!existing) {
+    throw new Error("Item não encontrado");
+  }
+
+  const item = await prisma.shoppingItem.update({
+    where: { id: params.itemId },
+    data: {
+      quantity: body.quantity,
+      unit: body.unit,
+      notes: body.notes,
+      priority: body.priority,
+    },
+    include: { ingredient: true },
+  });
+
+  return item;
 };
 
 // PATCH /api/shopping/:listId/items/:itemId/purchase
-// Marcar item como comprado
-// - Sete purchased = true
-// - IMPORTANTE: Crie um StockItem automaticamente com os dados do item
-// - Esse é o fluxo principal: comprou → entra no estoque
-export const purchaseShoppingItem = async ({
-  params,
-}: {
-  params: { listId: string; itemId: string };
-}) => {
-  // TODO: implementar
-  // 1. Busque o ShoppingItem
-  // 2. Atualize purchased = true
-  // 3. Crie StockItem com ingredientId, quantity, unit
-  // Use prisma.$transaction para garantir atomicidade
+export const purchaseShoppingItem = async ({ params }: ShoppingItemParams) => {
+  const item = await prisma.shoppingItem.findUnique({
+    where: { id: params.itemId },
+    include: { ingredient: true },
+  });
+
+  if (!item) {
+    throw new Error("Item não encontrado");
+  }
+
+  const [updatedItem, stockItem] = await prisma.$transaction([
+    prisma.shoppingItem.update({
+      where: { id: params.itemId },
+      data: { purchased: true },
+      include: { ingredient: true },
+    }),
+    prisma.stockItem.create({
+      data: {
+        ingredientId: item.ingredientId,
+        quantity: item.quantity,
+        unit: item.unit,
+      },
+      include: { ingredient: true },
+    }),
+  ]);
+
+  return { item: updatedItem, stockItem };
 };
 
 // DELETE /api/shopping/:listId/items/:itemId
-// Remover item da lista
-export const deleteShoppingItem = async ({
-  params,
-}: {
-  params: { listId: string; itemId: string };
-}) => {
-  // TODO: implementar
+export const deleteShoppingItem = async ({ params }: ShoppingItemParams) => {
+  const existing = await prisma.shoppingItem.findUnique({
+    where: { id: params.itemId },
+  });
+
+  if (!existing) {
+    throw new Error("Item não encontrado");
+  }
+
+  await prisma.shoppingItem.delete({
+    where: { id: params.itemId },
+  });
+
+  return { message: "Item removido" };
 };

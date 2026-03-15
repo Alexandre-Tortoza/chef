@@ -1,72 +1,129 @@
 import prisma from "../../database";
-
-// ============================================================================
-// HANDLERS - RECURRING PLANS (Planos Recorrentes / Dietas)
-// ============================================================================
-// Planos de refeição recorrentes (ex: "Dieta da semana", "Almoços de segunda a sexta")
-// Cada plano tem items que definem qual receita em qual dia/refeição
+import type { PlanParams, PlanQuery, PlanBody, PlanItemParams, PlanItemBody } from "./types";
 
 // GET /api/plans
-// Listar todos os planos
-// - Filtre por active (query.active = "true" | "false")
-export const listPlans = async ({ query }: { query: { active?: string } }) => {
-  // TODO: implementar
-  // const where = query.active !== undefined ? { active: query.active === "true" } : {};
-  // await prisma.recurringPlan.findMany({
-  //   where,
-  //   include: { _count: { select: { items: true } } },
-  //   orderBy: { createdAt: "desc" },
-  // });
+export const getAllPlan = async ({ query }: PlanQuery) => {
+  const where = query.active !== undefined ? { active: query.active === "true" } : {};
+  const plans = await prisma.recurringPlan.findMany({
+    where,
+    include: { _count: { select: { items: true } } },
+    orderBy: { createdAt: "desc" },
+  });
+
+  return plans;
 };
 
 // GET /api/plans/:id
-// Buscar plano por ID com todos os itens
-// - Inclua os items com detalhes (dia, tipo de refeição, recipeId)
-export const getPlan = async ({ params }: { params: { id: string } }) => {
-  // TODO: implementar
-  // await prisma.recurringPlan.findUnique({
-  //   where: { id: params.id },
-  //   include: { items: { orderBy: [{ dayOfWeek: "asc" }, { mealType: "asc" }] } },
-  // });
+export const getPlan = async ({ params }: PlanParams) => {
+  const plan = await prisma.recurringPlan.findUnique({
+    where: { id: params.id },
+    include: {
+      items: { orderBy: [{ dayOfWeek: "asc" }, { mealType: "asc" }] },
+    },
+  });
+
+  if (!plan) {
+    throw new Error("Plano não encontrado");
+  }
+
+  return plan;
 };
 
 // POST /api/plans
-// Criar novo plano recorrente
-// - Body: { name, description?, frequency, startDate, endDate? }
-// - frequency: "daily" | "weekly" | "monthly"
-export const createPlan = async ({ body }: { body: any }) => {
-  // TODO: implementar
+export const postPlan = async ({ body }: PlanBody) => {
+  const plan = await prisma.recurringPlan.create({
+    data: {
+      name: body.name,
+      description: body.description,
+      frequency: body.frequency,
+      startDate: new Date(body.startDate),
+      endDate: body.endDate ? new Date(body.endDate) : undefined,
+    },
+  });
+
+  return plan;
 };
 
 // PUT /api/plans/:id
-// Atualizar plano (nome, frequência, datas, ativo/inativo)
-export const updatePlan = async ({ params, body }: { params: { id: string }; body: any }) => {
-  // TODO: implementar
+export const patchPlan = async ({ params, body }: PlanParams & PlanBody) => {
+  const existing = await prisma.recurringPlan.findUnique({
+    where: { id: params.id },
+  });
+
+  if (!existing) {
+    throw new Error("Plano não encontrado");
+  }
+
+  const plan = await prisma.recurringPlan.update({
+    where: { id: params.id },
+    data: {
+      name: body.name,
+      description: body.description,
+      frequency: body.frequency,
+      startDate: new Date(body.startDate),
+      endDate: body.endDate ? new Date(body.endDate) : undefined,
+      active: body.active,
+    },
+  });
+
+  return plan;
 };
 
 // DELETE /api/plans/:id
-// Deletar plano (cascade deleta os items)
-export const deletePlan = async ({ params }: { params: { id: string } }) => {
-  // TODO: implementar
+export const deletePlan = async ({ params }: PlanParams) => {
+  const existing = await prisma.recurringPlan.findUnique({
+    where: { id: params.id },
+  });
+
+  if (!existing) {
+    throw new Error("Plano não encontrado");
+  }
+
+  await prisma.recurringPlan.delete({
+    where: { id: params.id },
+  });
+
+  return { message: "Plano removido" };
 };
 
 // --- PLAN ITEMS ---
 
 // POST /api/plans/:planId/items
-// Adicionar item ao plano
-// - Body: { recipeId, dayOfWeek?, dayOfMonth?, mealType? }
-// - dayOfWeek: 0-6 (domingo a sábado)
-// - mealType: "breakfast" | "lunch" | "dinner" | "snack"
-export const addPlanItem = async ({ params, body }: { params: { planId: string }; body: any }) => {
-  // TODO: implementar
+export const postPlanItem = async ({ params, body }: { params: { id: string } } & PlanItemBody) => {
+  const plan = await prisma.recurringPlan.findUnique({
+    where: { id: params.id },
+  });
+
+  if (!plan) {
+    throw new Error("Plano não encontrado");
+  }
+
+  const item = await prisma.recurringPlanItem.create({
+    data: {
+      recurringPlanId: params.id,
+      recipeId: body.recipeId,
+      dayOfWeek: body.dayOfWeek,
+      dayOfMonth: body.dayOfMonth,
+      mealType: body.mealType,
+    },
+  });
+
+  return item;
 };
 
 // DELETE /api/plans/:planId/items/:itemId
-// Remover item do plano
-export const removePlanItem = async ({
-  params,
-}: {
-  params: { planId: string; itemId: string };
-}) => {
-  // TODO: implementar
+export const deletePlanItem = async ({ params }: PlanItemParams) => {
+  const existing = await prisma.recurringPlanItem.findUnique({
+    where: { id: params.itemId },
+  });
+
+  if (!existing) {
+    throw new Error("Item não encontrado no plano");
+  }
+
+  await prisma.recurringPlanItem.delete({
+    where: { id: params.itemId },
+  });
+
+  return { message: "Item removido do plano" };
 };

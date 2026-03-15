@@ -1,27 +1,36 @@
-import { Elysia } from "elysia";
+import { Elysia, t } from "elysia";
 import {
-  listRecipes,
+  getAllRecipe,
   getRecipe,
-  createRecipe,
-  updateRecipe,
+  postRecipe,
+  patchRecipe,
   deleteRecipe,
-  searchRecipes,
+  searchRecipe,
 } from "./handlers";
 
-// ============================================================================
-// ROTAS - RECIPES (prefixo: /api/recipes)
-// ============================================================================
-// CRUD completo de receitas
-// A IA cria receitas via tools, o frontend consome via essas rotas
+const ingredientSchema = t.Object({
+  ingredientId: t.String(),
+  quantity: t.String(),
+  unit: t.Optional(t.String()),
+  notes: t.Optional(t.String()),
+});
+
+const recipeBodySchema = t.Object({
+  title: t.String(),
+  description: t.Optional(t.String()),
+  instructions: t.String(),
+  servings: t.Optional(t.Number()),
+  prepTime: t.Optional(t.Number()),
+  cookTime: t.Optional(t.Number()),
+  ingredients: t.Array(ingredientSchema),
+});
 
 const recipesRoutes = new Elysia({ prefix: "/recipes" })
-  // Busca por termo - deve vir ANTES de /:id para não conflitar
-  .get("/search", searchRecipes)
-
-  .get("/", listRecipes)
+  .get("/search", searchRecipe)
+  .get("/", getAllRecipe)
   .get("/:id", getRecipe)
-  .post("/", createRecipe)
-  .put("/:id", updateRecipe)
+  .post("/", postRecipe, { body: recipeBodySchema })
+  .put("/:id", patchRecipe, { body: recipeBodySchema })
   .delete("/:id", deleteRecipe);
 
 export default recipesRoutes;

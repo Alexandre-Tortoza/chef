@@ -1,26 +1,35 @@
-import { Elysia } from "elysia";
+import { Elysia, t } from "elysia";
 import {
-  listStock,
-  getStockItem,
-  createStockItem,
-  updateStockItem,
-  deleteStockItem,
-  getExpiringItems,
+  getAllStock,
+  getStock,
+  postStock,
+  patchStock,
+  deleteStock,
+  getExpiringStock,
 } from "./handlers";
 
-// ============================================================================
-// ROTAS - STOCK (prefixo: /api/stock)
-// ============================================================================
-// Gerencia o estoque do usuário (o que tem em casa)
-
 const stockRoutes = new Elysia({ prefix: "/stock" })
-  // Itens perto de vencer - antes de /:id
-  .get("/expiring", getExpiringItems)
-
-  .get("/", listStock)
-  .get("/:id", getStockItem)
-  .post("/", createStockItem)
-  .put("/:id", updateStockItem)
-  .delete("/:id", deleteStockItem);
+  .get("/expiring", getExpiringStock)
+  .get("/", getAllStock)
+  .get("/:id", getStock)
+  .post("/", postStock, {
+    body: t.Object({
+      ingredientId: t.String(),
+      quantity: t.String(),
+      unit: t.Optional(t.String()),
+      expiryDate: t.Optional(t.String()),
+      location: t.Optional(t.String()),
+    }),
+  })
+  .put("/:id", patchStock, {
+    body: t.Object({
+      ingredientId: t.String(),
+      quantity: t.String(),
+      unit: t.Optional(t.String()),
+      expiryDate: t.Optional(t.String()),
+      location: t.Optional(t.String()),
+    }),
+  })
+  .delete("/:id", deleteStock);
 
 export default stockRoutes;
